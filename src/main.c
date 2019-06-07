@@ -4,6 +4,7 @@
 #include <sys/stat.h> // open
 #include <fcntl.h> // open
 #include <unistd.h> // read
+#include <time.h> // clock
 
 typedef unsigned char byte;
 typedef size_t size;
@@ -103,19 +104,33 @@ int main(){
 
 	int random_fd = open("/dev/urandom", O_RDONLY);
 
-	const size textlen = 1000000;
-	const size patlen = 10;
+	printf("textlen, patlen, meantime\n");
+	for(int _i=1; _i<=25; _i++){
 
-	byte *text, *pat;
-	text = malloc(textlen);
-	pat = malloc(patlen);
+		const size textlen = 1000000;
+		const size patlen = _i;
 
-	fillRandom(text,textlen,random_fd);
-	fillRandom(pat,patlen,random_fd);
-	size pos = boyer(text,textlen,pat,patlen);
-	printf("%li\n",pos);
+		byte *text, *pat;
+		text = malloc(textlen);
+		pat = malloc(patlen);
 
-	free(text);
-	free(pat);
+		const size N = 250;
+		double mean_time = 0;
+		for(int __i=0; __i<N; __i++){
+			clock_t begin = clock();
+			fillRandom(text,textlen,random_fd);
+			fillRandom(pat,patlen,random_fd);
+			size pos = boyer(text,textlen,pat,patlen);
+			//printf("%li\n",pos);
+			clock_t end = clock();
+			double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+			mean_time += time_spent;
+		}
+		mean_time /= (double)N;
+		printf("%lu, %lu, %f\n",textlen,patlen,mean_time);
+
+		free(text);
+		free(pat);
+	}
 	return 0;
 }
