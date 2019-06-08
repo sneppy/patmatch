@@ -4,6 +4,11 @@
 // Basic types
 //////////////////////////////////////////////////
 
+typedef signed char			int8;
+typedef signed short		int16;
+typedef signed int			int32;
+typedef signed long long	int64;
+
 typedef unsigned char		uint8;
 typedef unsigned short		uint16;
 typedef unsigned int		uint32;
@@ -33,5 +38,5 @@ typedef long double	float128;
 #if BUILD_DEBUG
 	#define FORCE_INLINE inline
 #else
-	#define FORCE_INLINE __attribute__((always_inline))
+	#define FORCE_INLINE inline __attribute__((always_inline))
 #endif
