@@ -21,7 +21,7 @@ void gsP1(GSParams * params)
 
 		gsP2(params);
 	}
-	else if (params->s + params->p1 + params->q1 < params->n)
+	else if (params->s + params->p1 + params->q1 != params->m)
 	{
 		params->p1 += params->q1 / params->k + 1;
 		params->q1 = 0;		
