@@ -6,7 +6,7 @@
  * 
  * @param [in] k number of bits
  */
-void karpRabinComputeFingerprints(KarpRabinParams * params, umat2 * kr, umat2 * kw, umat2 * kir, umat2 * kiw, const uint32 i)
+void kpComputeFingerprints(KarpRabinParams * params, umat2 * kr, umat2 * kw, umat2 * kir, umat2 * kiw, const uint32 i)
 {
 	if (i < 16)
 	{
@@ -26,7 +26,7 @@ void karpRabinComputeFingerprints(KarpRabinParams * params, umat2 * kr, umat2 * 
 			}
 		
 		// Recursive call, invert read and write buffers
-		karpRabinComputeFingerprints(params, kw, kr, kiw, kir, i * i);
+		kpComputeFingerprints(params, kw, kr, kiw, kir, i * i);
 	}
 	else
 	{
@@ -48,7 +48,7 @@ void karpRabinComputeFingerprints(KarpRabinParams * params, umat2 * kr, umat2 * 
 	}
 }
 
-void karpRabinInitParams(KarpRabinParams * params, uint32 p)
+void kpInitParams(KarpRabinParams * params, uint32 p)
 {
 	// Set prime
 	params->p = p;
@@ -85,10 +85,10 @@ void karpRabinInitParams(KarpRabinParams * params, uint32 p)
 	};
 
 	// Compute fingerprints
-	karpRabinComputeFingerprints(params, k[0], k[1], ki[0], ki[1], 2);
+	kpComputeFingerprints(params, k[0], k[1], ki[0], ki[1], 2);
 }
 
-void karpRabinGenerateFingerprint(umat2 * fp, const char * stream, uint32 len, const KarpRabinParams * params)
+void kpGenerateFingerprint(umat2 * fp, const char * stream, uint32 len, const KarpRabinParams * params)
 {
 	// Reset fp with identity
 	fp->vector = eye.vector;
@@ -101,7 +101,7 @@ void karpRabinGenerateFingerprint(umat2 * fp, const char * stream, uint32 len, c
 	}
 }
 
-void karpRabinIncrementFingerprint(umat2 * fp, const char * stream, uint32 len, const KarpRabinParams * params)
+void kpIncrementFingerprint(umat2 * fp, const char * stream, uint32 len, const KarpRabinParams * params)
 {
 	umat2_dot_bab_z(params->fpi + *(stream - len), fp, params->fp + *stream, &params->z);
 }

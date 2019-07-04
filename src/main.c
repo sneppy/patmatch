@@ -9,7 +9,7 @@ int main(int argc, char ** argv)
 {
 	srand(clock());
 
-	const uint32 k = 3;
+	const uint32 k = 16;
 
 	//////////////////////////////////////////////////
 	// Init data
@@ -40,7 +40,7 @@ int main(int argc, char ** argv)
 		// Generate a random prime
 		uint32 p = getRandomPrime(1, len * (sizeof(text) - len));
 
-		karpRabinInitParams(params + i, p);
+		kpInitParams(params + i, p);
 	}
 
 	//////////////////////////////////////////////////
@@ -52,8 +52,8 @@ int main(int argc, char ** argv)
 	ubyte match = 1;
 	for (uint32 i = 0; i < k; ++i)
 	{
-		karpRabinGenerateFingerprint(pfp + i, pattern, len, params + i);
-		karpRabinGenerateFingerprint(tfp + i, text, len, params + i);
+		kpGenerateFingerprint(pfp + i, pattern, len, params + i);
+		kpGenerateFingerprint(tfp + i, text, len, params + i);
 
 		match &= umat2_cmpeq(pfp + i, tfp + i) == 0xffff;
 	}
@@ -63,7 +63,7 @@ int main(int argc, char ** argv)
 		match = 1;
 		for (uint32 j = 0; j < k; ++j)
 		{
-			karpRabinIncrementFingerprint(tfp + j, text + i, len, params + j);
+			kpIncrementFingerprint(tfp + j, text + i, len, params + j);
 			match &= umat2_cmpeq(pfp + j, tfp + j) == 0xffff;
 		}
 	}

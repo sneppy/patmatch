@@ -27,7 +27,7 @@ typedef struct KarpRabinParamsStruct
  * @param [out] params initialized parameters
  * @parma [in] p prime number
  */
-void karpRabinInitParams(KarpRabinParams * params, uint32 p);
+void kpInitParams(KarpRabinParams * params, uint32 p);
 
 /**
  * Generate new fingerprint from stream
@@ -37,7 +37,7 @@ void karpRabinInitParams(KarpRabinParams * params, uint32 p);
  * @param [in] len pattern length
  * @param [in] params KP parameters
  */
-void karpRabinGenerateFingerprint(umat2 * fp, const char * stream, uint32 len, const KarpRabinParams * params);
+void kpGenerateFingerprint(umat2 * fp, const char * stream, uint32 len, const KarpRabinParams * params);
 
 /**
  * Increment fingerprint
@@ -47,4 +47,4 @@ void karpRabinGenerateFingerprint(umat2 * fp, const char * stream, uint32 len, c
  * @param [in] len pattern length
  * @param [in] params KP parameters
  */
-void karpRabinIncrementFingerprint(umat2 * fp, const char * stream, uint32 len, const KarpRabinParams * params);
+void kpIncrementFingerprint(umat2 * fp, const char * stream, uint32 len, const KarpRabinParams * params);
