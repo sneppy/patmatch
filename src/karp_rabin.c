@@ -1,4 +1,4 @@
-#include "karp-rabin.h"
+#include "karp_rabin.h"
 
 /**
  * Recursive utility to compute fingerprints

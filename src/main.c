@@ -3,7 +3,7 @@
 #include <time.h>
 
 #include "math.h"
-#include "karp-rabin.h"
+#include "karp_rabin.h"
 
 int main(int argc, char ** argv)
 {
