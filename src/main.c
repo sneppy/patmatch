@@ -117,9 +117,9 @@ int main(){
 		const size N = 250;
 		double mean_time = 0;
 		for(int __i=0; __i<N; __i++){
-			clock_t begin = clock();
 			fillRandom(text,textlen,random_fd);
 			fillRandom(pat,patlen,random_fd);
+			clock_t begin = clock();
 			size pos = boyer(text,textlen,pat,patlen);
 			//printf("%li\n",pos);
 			clock_t end = clock();
