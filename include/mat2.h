@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core_types.h"
+#include "math.h"
 
 #include <string.h>
 #include <immintrin.h>
@@ -15,68 +16,53 @@ typedef union Mat2U
 	struct
 	{
 		/// Scalar elements
-		uint32 a, b, c, d;
+		uint64 a, b, c, d;
 	};
 
 	/// Array memory
-	uint32 array[4];
+	uint64 array[4];
 
 	/// Matrix memory
-	uint32 matrix[2][2];
-
-	/// Intrinsics memory
-	__m128i vector;
+	uint64 matrix[2][2];
 } umat2;
 
 /**
  * Perform basic element-wise
- * arithemtic operations
+ * arithmetic operations
  * 
  * @param [out] a destination operand
  * @param [in] b source operand
+ * @param [in] mp montgomery parameters
  * @{
  */
-static FORCE_INLINE void umat2_add(umat2 * a, const umat2 * b)
+static FORCE_INLINE void umat2_mul(umat2 * a, const umat2 * b, const MontgomeryParams * mp)
 {
-	a->vector = _mm_add_epi32(a->vector, b->vector);
-}
-
-static FORCE_INLINE void umat2_mul(umat2 * a, const umat2 * b)
-{
-	a->vector = _mm_mullo_epi32(a->vector, b->vector);
+	montgomeryMul(a->a, b->a, mp);
+	montgomeryMul(a->b, b->b, mp);
+	montgomeryMul(a->c, b->c, mp);
+	montgomeryMul(a->d, b->d, mp);
 }
 /// @}
-
-/**
- * Perform modulo operation
- * 
- * @param [out] a destination operand
- * @param [in] z source operand
- */
-static FORCE_INLINE void umat2_mod(umat2 * a, const umat2 * z)
-{
-	// ! Very inefficient
-	a->vector = _mm_sub_epi32(a->vector, _mm_mullo_epi32(_mm_cvttps_epi32(_mm_div_ps(_mm_cvtepi32_ps(a->vector), _mm_cvtepi32_ps(z->vector))), z->vector));
-}
 
 /**
  * Perform matrix dot product
  * 
  * @param [out] a destination operand
  * @param [in] b source operand
+ * @param [in] mp montgomery parameters
  */
-static FORCE_INLINE void umat2_dot(umat2 * a, const umat2 * b)
+static FORCE_INLINE void umat2_dot(umat2 * a, const umat2 * b, const MontgomeryParams * mp)
 {
-	__m128i y = _mm_shuffle_epi32(b->vector, _MM_SHUFFLE(3, 1, 2, 0));
+	uint64 x, y, z, w;
+	x = montgomeryAdd(montgomeryMul(a->a, b->a, mp), montgomeryMul(a->b, b->c, mp), mp);
+	y = montgomeryAdd(montgomeryMul(a->a, b->b, mp), montgomeryMul(a->b, b->d, mp), mp);
+	z = montgomeryAdd(montgomeryMul(a->c, b->a, mp), montgomeryMul(a->d, b->c, mp), mp);
+	w = montgomeryAdd(montgomeryMul(a->c, b->b, mp), montgomeryMul(a->d, b->d, mp), mp);
 
-	__m128i x1 = _mm_shuffle_epi32(a->vector, _MM_SHUFFLE(1, 0, 1, 0));
-	x1 = _mm_mullo_epi32(x1, y);
-
-	__m128i x2 = _mm_shuffle_epi32(a->vector, _MM_SHUFFLE(3, 2, 3, 2));
-	x2 = _mm_mullo_epi32(x2, y);
-
-
-	a->vector = _mm_hadd_epi32(x1, x2);
+	a->a = x;
+	a->b = y;
+	a->c = z;
+	a->d = w;
 }
 /// @}
 
@@ -86,18 +72,20 @@ static FORCE_INLINE void umat2_dot(umat2 * a, const umat2 * b)
  * 
  * @param [in] a source operand
  * @param [out] b destination operand
+ * @param [in] mp montgomery parameters
  */
-static FORCE_INLINE void umat2_dot_rev(const umat2 * a, umat2 * b)
+static FORCE_INLINE void umat2_dot_rev(const umat2 * a, umat2 * b, const MontgomeryParams * mp)
 {
-	__m128i y = _mm_shuffle_epi32(b->vector, _MM_SHUFFLE(3, 1, 2, 0));
+	uint64 x, y, z, w;
+	x = montgomeryAdd(montgomeryMul(a->a, b->a, mp), montgomeryMul(a->b, b->c, mp), mp);
+	y = montgomeryAdd(montgomeryMul(a->a, b->b, mp), montgomeryMul(a->b, b->d, mp), mp);
+	z = montgomeryAdd(montgomeryMul(a->c, b->a, mp), montgomeryMul(a->d, b->c, mp), mp);
+	w = montgomeryAdd(montgomeryMul(a->c, b->b, mp), montgomeryMul(a->d, b->d, mp), mp);
 
-	__m128i x1 = _mm_shuffle_epi32(a->vector, _MM_SHUFFLE(1, 0, 1, 0));
-	x1 = _mm_mullo_epi32(x1, y);
-
-	__m128i x2 = _mm_shuffle_epi32(a->vector, _MM_SHUFFLE(3, 2, 3, 2));
-	x2 = _mm_mullo_epi32(x2, y);
-
-	b->vector = _mm_hadd_epi32(x1, x2);
+	b->a = x;
+	b->b = y;
+	b->c = z;
+	b->d = w;
 }
 /// @}
 
@@ -108,33 +96,12 @@ static FORCE_INLINE void umat2_dot_rev(const umat2 * a, umat2 * b)
  * @param [in] b0,b1 outer matrices
  * @param [out] a destination operand
  */
-static FORCE_INLINE void umat2_dot_bab(const umat2 * b0, umat2 * a, const umat2 * b1)
+static FORCE_INLINE void umat2_dot_bab(const umat2 * b0, umat2 * a, const umat2 * b1, const MontgomeryParams * mp)
 {
-	__m128i x = _mm_shuffle_epi32(a->vector, _MM_SHUFFLE(3, 1, 2, 0));
-
-	__m128i y0 = _mm_shuffle_epi32(b0->vector, _MM_SHUFFLE(1, 0, 1, 0));
-	y0 = _mm_mullo_epi32(y0, x);
-
-	__m128i y1 = _mm_shuffle_epi32(b0->vector, _MM_SHUFFLE(3, 2, 3, 2));
-	y1 = _mm_mullo_epi32(y1, x);
-
-	__m128i z0 = _mm_shuffle_epi32(b1->vector, _MM_SHUFFLE(2, 2, 0, 0));
-	z0 = _mm_hadd_epi32(_mm_mullo_epi32(y0, z0), _mm_mullo_epi32(y1, z0));
-
-	__m128i z1 = _mm_shuffle_epi32(b1->vector, _MM_SHUFFLE(3, 3, 1, 1));
-	z1 = _mm_hadd_epi32(_mm_mullo_epi32(y0, z1), _mm_mullo_epi32(y1, z1));
-
-	a->vector = _mm_hadd_epi32(z0, z1);
+	umat2_dot_rev(b0, a, mp);
+	umat2_dot(a, b1, mp);
 }
 /// @}
-
-static FORCE_INLINE void umat2_dot_bab_z(const umat2 * b0, umat2 * a, const umat2 * b1, const umat2 * z)
-{
-	umat2_dot_rev(b0, a);
-	umat2_mod(a, z);
-	umat2_dot(a, b1);
-	umat2_mod(a, z);
-}
 
 /**
  * Return a bitmask where ecah 4-bit
@@ -145,13 +112,21 @@ static FORCE_INLINE void umat2_dot_bab_z(const umat2 * b0, umat2 * a, const umat
  */
 static FORCE_INLINE int umat2_cmpeq(const umat2 * a, const umat2 * b)
 {
-	return _mm_movemask_epi8(_mm_cmpeq_epi32(a->vector, b->vector));
+	return a->a == b->a && a->b == b->b && a->c == b->c && a->d == b->d;
 }
 
-static FORCE_INLINE void umat2_print(const umat2 * m)
+/* static FORCE_INLINE void umat2_print(const umat2 * m)
 {
 	printf("| %4u, %4u |\n", m->a, m->b);
 	printf("| %4u, %4u |\n", m->c, m->d);
+} */
+
+static FORCE_INLINE void montgomeryFromMat2U(umat2 * m, const MontgomeryParams * mp)
+{
+	m->a = montgomeryFromU32((uint32)m->a, mp);
+	m->b = montgomeryFromU32((uint32)m->b, mp);
+	m->c = montgomeryFromU32((uint32)m->c, mp);
+	m->d = montgomeryFromU32((uint32)m->d, mp);
 }
 
 extern const umat2 eye;

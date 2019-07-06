@@ -10,9 +10,9 @@ typedef struct KarpRabinParamsStruct
 {
 	/// Prime number bound to this instance
 	uint32 p;
-
-	/// Modulo matrix
-	umat2 z;
+	
+	/// Montgomery params
+	MontgomeryParams mp;
 
 	/// Fingerprints for char type
 	umat2 fp[256];
@@ -27,7 +27,7 @@ typedef struct KarpRabinParamsStruct
  * @param [out] params initialized parameters
  * @parma [in] p prime number
  */
-void kpInitParams(KarpRabinParams * params, uint32 p);
+void krInitParams(KarpRabinParams * params, uint32 p);
 
 /**
  * Generate new fingerprint from stream
@@ -37,7 +37,7 @@ void kpInitParams(KarpRabinParams * params, uint32 p);
  * @param [in] len pattern length
  * @param [in] params KP parameters
  */
-void kpGenerateFingerprint(umat2 * fp, const char * stream, uint32 len, const KarpRabinParams * params);
+void krGenerateFingerprint(umat2 * fp, const char * stream, uint32 len, const KarpRabinParams * params);
 
 /**
  * Increment fingerprint
@@ -47,4 +47,4 @@ void kpGenerateFingerprint(umat2 * fp, const char * stream, uint32 len, const Ka
  * @param [in] len pattern length
  * @param [in] params KP parameters
  */
-void kpIncrementFingerprint(umat2 * fp, const char * stream, uint32 len, const KarpRabinParams * params);
+void krIncrementFingerprint(umat2 * fp, const char * stream, uint32 len, const KarpRabinParams * params);

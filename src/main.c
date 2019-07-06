@@ -22,7 +22,15 @@ int main(int argc, char ** argv)
 	}
 
 	// TODO: Read input text
-	const char text[] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent elit nulla, dapibus in sapien at, molestie iaculis magna. Fusce quis magna mauris. Mauris felis nulla, sollicitudin in luctus mattis, varius vel quam. Nunc at dui at risus dictum malesuada. Cras sit amet iaculis purus. Sed imperdiet eros sit amet turpis euismod ultricies. Mauris a orci at orci venenatis gravida. Nullam porta cursus aliquam. Aenean venenatis et nisl in blandit. Vestibulum eleifend eros ligula, id ullamcorper nisi ornare metus.";
+	const char text[] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec pellentesque posuere urna semper ornare. Phasellus in arcu mattis, rutrum risus in, scelerisque dui. Aliquam feugiat ut est non maximus. Morbi consequat accumsan mi a tincidunt. Curabitur mollis imperdiet augue, et bibendum turpis egestas at. Duis erat augue, condimentum at aliquam porttitor, faucibus laoreet lacus. Vivamus sit amet faucibus nunc. Sed nec erat ac elit ornare mollis. Etiam vel egestas nibh, in faucibus ipsum. Vestibulum faucibus sit amet lectus sed finibus. Nulla aliquet placerat elit et commodo. Aliquam erat volutpat. Aenean sagittis erat euismod felis condimentum molestie. Donec tincidunt est ipsum, at laoreet orci volutpat id. Nulla vel velit non dolor elementum vestibulum. Vestibulum sit amet nulla felis."
+""
+"Morbi dapibus scelerisque nulla eu varius. In rhoncus, est vel mollis finibus, metus est placerat sem, vel aliquet lectus metus eget lectus. Aliquam erat ligula, condimentum sit amet gravida sed, accumsan semper purus. Aliquam nec ipsum eget nulla commodo pretium nec sit amet est. Curabitur rutrum sollicitudin est vel blandit. Nunc tempus orci sed sollicitudin consequat. Cras lacinia finibus sollicitudin."
+""
+"Sed fringilla vel neque et blandit. Curabitur vehicula purus non dolor consectetur porta. Nunc semper ante mi, non porta orci pellentesque sed. Ut pellentesque cursus elit, quis condimentum dolor aliquam et. Vivamus mollis risus pharetra, faucibus lacus at, pharetra mi. Donec consectetur venenatis facilisis. Cras eget pulvinar dui, quis tempor est. Proin dignissim libero odio, ut pulvinar felis accumsan quis. Duis ac diam pulvinar, luctus nisi at, hendrerit sem. In sed pretium enim, eu cursus libero."
+""
+"Phasellus varius sit amet massa tincidunt congue. Nam porttitor, mi non faucibus scelerisque, diam ipsum congue diam, eu rhoncus risus sem bibendum lacus. Etiam dignissim metus risus, at accumsan sem elementum at. Pellentesque est lacus, accumsan vel dictum nec, fringilla nec eros. Ut vestibulum finibus pellentesque. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Morbi ultricies purus blandit, dapibus libero et, sodales urna."
+""
+"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam lacinia nunc vitae lacus ornare, eget scelerisque purus viverra. Nam laoreet lorem eget justo aliquet tincidunt a et enim. Pellentesque lacinia nulla ut orci cursus tempus. Aenean tincidunt risus ut mi feugiat, sed molestie ligula facilisis. In elit odio, volutpat ut sollicitudin vitae, gravida sit amet tortor. Nunc mollis faucibus sodales. Nam ut fermentum mauris. Curabitur id ipsum elementum, malesuada tellus sed, imperdiet quam. Duis luctus volutpat ornare. Fusce placerat metus eu semper imperdiet. Nullam accumsan felis risus, et ultrices ipsum interdum sed. Cras sit amet velit sapien. Mauris varius, lectus at molestie luctus, purus sem tincidunt metus, nec lacinia nulla turpis non neque.";
 
 	// Get pattern
 	const char * pattern = argv[1];
@@ -32,15 +40,16 @@ int main(int argc, char ** argv)
 	// Init KP algorithm
 	//////////////////////////////////////////////////
 
-
 	// Init KP params
+	uint32 patternLen = len;
+	uint32 textLen = sizeof(text);
 	KarpRabinParams params[k];
 	for (uint32 i = 0; i < k; ++i)
 	{
 		// Generate a random prime
-		uint32 p = getRandomPrime(1, len * (sizeof(text) - len));
+		uint32 p = getRandomPrime(1, patternLen * textLen * textLen);
 
-		kpInitParams(params + i, p);
+		krInitParams(params + i, p);
 	}
 
 	//////////////////////////////////////////////////
@@ -52,19 +61,19 @@ int main(int argc, char ** argv)
 	ubyte match = 1;
 	for (uint32 i = 0; i < k; ++i)
 	{
-		kpGenerateFingerprint(pfp + i, pattern, len, params + i);
-		kpGenerateFingerprint(tfp + i, text, len, params + i);
+		krGenerateFingerprint(pfp + i, pattern, len, params + i);
+		krGenerateFingerprint(tfp + i, text, len, params + i);
 
-		match &= umat2_cmpeq(pfp + i, tfp + i) == 0xffff;
+		match &= umat2_cmpeq(pfp + i, tfp + i);
 	}
 	
-	uint32 i = len; for (; !match && i < sizeof(text) - 1; ++i)
+	uint32 i = patternLen; for (; match == 0 && i < textLen - 1; ++i)
 	{
 		match = 1;
 		for (uint32 j = 0; j < k; ++j)
 		{
-			kpIncrementFingerprint(tfp + j, text + i, len, params + j);
-			match &= umat2_cmpeq(pfp + j, tfp + j) == 0xffff;
+			krIncrementFingerprint(tfp + j, text + i, patternLen, params + j);
+			match &= umat2_cmpeq(pfp + j, tfp + j);
 		}
 	}
 

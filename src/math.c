@@ -32,9 +32,10 @@ void montgomeryInitParams(MontgomeryParams * params, uint64 r, uint64 n)
 	params->ninv = v;
 }
 
-uint64 montgomeryMul(uint64 a, uint64 b, MontgomeryParams * params)
+uint64 montgomeryMul(uint64 a, uint64 b, const MontgomeryParams * params)
 {
 	// Assume radix is 2^32
+	if (a == 0 || b == 0) return 0;
 
 	uint64 c = 0;
 	for (uint8 i = 0; i < 32; ++i, a >>= 1)
@@ -47,7 +48,7 @@ uint64 montgomeryMul(uint64 a, uint64 b, MontgomeryParams * params)
 	return c < params->n ? c : c - params->n;
 }
 
-uint64 montgomeryExp(uint64 b, uint32 e, MontgomeryParams * params)
+uint64 montgomeryExp(uint64 b, uint32 e, const MontgomeryParams * params)
 {
 	uint64 c = montgomeryFromU32(1u, params);
 

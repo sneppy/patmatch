@@ -6,7 +6,7 @@
  * 
  * @param [in] k number of bits
  */
-void kpComputeFingerprints(KarpRabinParams * params, umat2 * kr, umat2 * kw, umat2 * kir, umat2 * kiw, const uint32 i)
+void krComputeFingerprints(const KarpRabinParams * params, umat2 * kr, umat2 * kw, umat2 * kir, umat2 * kiw, const uint32 i)
 {
 	if (i < 16)
 	{
@@ -16,17 +16,15 @@ void kpComputeFingerprints(KarpRabinParams * params, umat2 * kr, umat2 * kw, uma
 			{
 				const uint32 idx = x * i + y;
 
-				kw[idx].vector = kr[y].vector;
-				umat2_dot(kw + idx, kr + x);
-				umat2_mod(kw + idx, &params->z);
+				memcpy(kw + idx, kr + y, sizeof(*kr));
+				umat2_dot(kw + idx, kr + x, &params->mp);
 
-				kiw[idx].vector = kir[x].vector;
-				umat2_dot(kiw + idx, kir + y);
-				umat2_mod(kiw + idx, &params->z);
+				memcpy(kiw + idx, kir + x, sizeof(*kir));
+				umat2_dot(kiw + idx, kir + y, &params->mp);
 			}
 		
 		// Recursive call, invert read and write buffers
-		kpComputeFingerprints(params, kw, kr, kiw, kir, i * i);
+		krComputeFingerprints(params, kw, kr, kiw, kir, i * i);
 	}
 	else
 	{
@@ -37,35 +35,37 @@ void kpComputeFingerprints(KarpRabinParams * params, umat2 * kr, umat2 * kw, uma
 				const uint32 idx = x * i + y;
 
 				// Compute fingerprint
-				params->fp[idx].vector = kr[y].vector;
-				umat2_dot(params->fp + idx, kr + x);
-				umat2_mod(params->fp + idx, &params->z);
+				memcpy(params->fp + idx, kr + y, sizeof(*kr));
+				umat2_dot(params->fp + idx, kr + x, &params->mp);
 
-				params->fpi[idx].vector = kir[x].vector;
-				umat2_dot(params->fpi + idx, kir + y);
-				umat2_mod(params->fpi + idx, &params->z);
+				memcpy(params->fpi + idx, kir + x, sizeof(*kir));
+				umat2_dot(params->fpi + idx, kir + y, &params->mp);
 			}
 	}
 }
 
-void kpInitParams(KarpRabinParams * params, uint32 p)
+void krInitParams(KarpRabinParams * params, uint32 p)
 {
 	// Set prime
 	params->p = p;
+	
+	// Set modulo in montgomery parameters
+	montgomeryInitParams(&params->mp, 1u << 31, p);
 
-	// Set modulo matrix
-	params->z.vector = _mm_set1_epi32(p);
+	const uint64 one = montgomeryFromU32(1u, &params->mp);
+	const uint64 zero = montgomeryFromU32(0u, &params->mp);
+	const uint64 mone = montgomeryFromU32(p - 1u, &params->mp);
 
 	// Partial fingerprints
 	umat2 k[2][16] = {
 		{
 			{
-				1, 0,
-				1, 1
+				one, zero,
+				one, one
 			},
 			{
-				1, 1,
-				0, 1
+				one, one,
+				zero, one
 			}
 		}
 	};
@@ -74,34 +74,29 @@ void kpInitParams(KarpRabinParams * params, uint32 p)
 	umat2 ki[2][16] = {
 		{
 			{
-				1, 0,
-				p - 1, 1
+				one, zero,
+				mone, one
 			},
 			{
-				1, p - 1,
-				0, 1
+				one, mone,
+				zero, one
 			}
 		}
 	};
 
 	// Compute fingerprints
-	kpComputeFingerprints(params, k[0], k[1], ki[0], ki[1], 2);
+	krComputeFingerprints(params, k[0], k[1], ki[0], ki[1], 2);
 }
 
-void kpGenerateFingerprint(umat2 * fp, const char * stream, uint32 len, const KarpRabinParams * params)
+void krGenerateFingerprint(umat2 * fp, const char * stream, uint32 len, const KarpRabinParams * params)
 {
-	// Reset fp with identity
-	fp->vector = eye.vector;
-
 	// Multiply each character fingerprint
-	for (uint32 i = 0; i < len; ++i)
-	{
-		umat2_dot(fp, params->fp + stream[i]);
-		umat2_mod(fp, &params->z);
-	}
+	memcpy(fp, params->fp + stream[0], sizeof(*params->fp));
+	for (uint32 i = 1; i < len; ++i)
+		umat2_dot(fp, params->fp + stream[i], &params->mp);
 }
 
-void kpIncrementFingerprint(umat2 * fp, const char * stream, uint32 len, const KarpRabinParams * params)
+void krIncrementFingerprint(umat2 * fp, const char * stream, uint32 len, const KarpRabinParams * params)
 {
-	umat2_dot_bab_z(params->fpi + *(stream - len), fp, params->fp + *stream, &params->z);
+	umat2_dot_bab(params->fpi + *(stream - len), fp, params->fp + *stream, &params->mp);
 }
