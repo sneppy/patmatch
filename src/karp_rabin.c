@@ -6,7 +6,7 @@
  * 
  * @param [in] k number of bits
  */
-void krComputeFingerprints(const KRParams * params, umat2 * kr, umat2 * kw, umat2 * kir, umat2 * kiw, const uint32 i)
+void krComputeFingerprints(KRParams * params, umat2 * kr, umat2 * kw, umat2 * kir, umat2 * kiw, const uint32 i)
 {
 	if (i < 16)
 	{

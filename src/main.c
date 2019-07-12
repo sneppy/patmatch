@@ -3,8 +3,14 @@
 #include <time.h>
 
 #include "math.h"
+#include "boyer_moore.h"
 #include "karp_rabin.h"
 #include "galil_seiferas.h"
+
+int32 bmRun(const char * text, uint32 textLen, const char * pattern, uint32 patternLen)
+{
+	bmMatch((const ubyte*)text, textLen, (const ubyte*)pattern, patternLen);
+}
 
 int32 krRun(const char * text, uint32 textLen, const char * pattern, uint32 patternLen)
 {
@@ -39,7 +45,7 @@ int32 krRun(const char * text, uint32 textLen, const char * pattern, uint32 patt
 		}
 	}
 
-	return match ? i : -1;
+	return match ? i - patternLen : -1;
 }
 
 int32 gsRun(const char * text, uint32 textLen, const char * pattern, uint32 patternLen)
@@ -52,5 +58,12 @@ int32 gsRun(const char * text, uint32 textLen, const char * pattern, uint32 patt
 
 int main(int argc, char ** argv)
 {
+	const char text[] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras finibus, enim a tincidunt porttitor, ante tellus rhoncus felis, ac mollis libero magna eget orci. Etiam posuere sapien accumsan leo tempor, quis euismod metus tincidunt. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Curabitur id feugiat diam, vitae lacinia ante. Proin condimentum pellentesque felis. Proin ultricies eu erat ornare eleifend. Donec nec cursus mi. Sed molestie nisl quis massa bibendum posuere.";
+	const char pattern[] = "tincidunt porttitor";
+
+	printf("Boyer-Moore: %d\n", bmRun(text, sizeof(text) - 1, pattern, sizeof(pattern) - 1));
+	printf("Karp-Rabin: %d\n", krRun(text, sizeof(text) - 1, pattern, sizeof(pattern) - 1));
+	printf("Galil-Seiferas: %d\n", gsRun(text, sizeof(text) - 1, pattern, sizeof(pattern) - 1));
+
 	return 0;
 }
