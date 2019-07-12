@@ -6,7 +6,7 @@
  * 
  * @param [in] k number of bits
  */
-void krComputeFingerprints(const KarpRabinParams * params, umat2 * kr, umat2 * kw, umat2 * kir, umat2 * kiw, const uint32 i)
+void krComputeFingerprints(const KRParams * params, umat2 * kr, umat2 * kw, umat2 * kir, umat2 * kiw, const uint32 i)
 {
 	if (i < 16)
 	{
@@ -44,7 +44,7 @@ void krComputeFingerprints(const KarpRabinParams * params, umat2 * kr, umat2 * k
 	}
 }
 
-void krInitParams(KarpRabinParams * params, uint32 p)
+void krInitParams(KRParams * params, uint32 p)
 {
 	// Set prime
 	params->p = p;
@@ -88,7 +88,7 @@ void krInitParams(KarpRabinParams * params, uint32 p)
 	krComputeFingerprints(params, k[0], k[1], ki[0], ki[1], 2);
 }
 
-void krGenerateFingerprint(umat2 * fp, const char * stream, uint32 len, const KarpRabinParams * params)
+void krGenerateFingerprint(umat2 * fp, const char * stream, uint32 len, const KRParams * params)
 {
 	// Multiply each character fingerprint
 	memcpy(fp, params->fp + stream[0], sizeof(*params->fp));
@@ -96,7 +96,7 @@ void krGenerateFingerprint(umat2 * fp, const char * stream, uint32 len, const Ka
 		umat2_dot(fp, params->fp + stream[i], &params->mp);
 }
 
-void krIncrementFingerprint(umat2 * fp, const char * stream, uint32 len, const KarpRabinParams * params)
+void krIncrementFingerprint(umat2 * fp, const char * stream, uint32 len, const KRParams * params)
 {
 	umat2_dot_bab(params->fpi + *(stream - len), fp, params->fp + *stream, &params->mp);
 }

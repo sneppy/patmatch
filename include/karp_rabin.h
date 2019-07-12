@@ -6,7 +6,7 @@
 /**
  * Karp-Rabin parameters struct
  */
-typedef struct KarpRabinParamsStruct
+typedef struct KRParamsStruct
 {
 	/// Prime number bound to this instance
 	uint32 p;
@@ -19,7 +19,10 @@ typedef struct KarpRabinParamsStruct
 
 	/// Inverse fingerprints
 	umat2 fpi[256];
-} KarpRabinParams;
+} KRParams;
+
+/// Default number of fingerprint
+#define KR_DEFAULT_FP_COUNT 16
 
 /**
  * Initialize parameters with prime number
@@ -27,7 +30,7 @@ typedef struct KarpRabinParamsStruct
  * @param [out] params initialized parameters
  * @parma [in] p prime number
  */
-void krInitParams(KarpRabinParams * params, uint32 p);
+void krInitParams(KRParams * params, uint32 p);
 
 /**
  * Generate new fingerprint from stream
@@ -37,7 +40,7 @@ void krInitParams(KarpRabinParams * params, uint32 p);
  * @param [in] len pattern length
  * @param [in] params KP parameters
  */
-void krGenerateFingerprint(umat2 * fp, const char * stream, uint32 len, const KarpRabinParams * params);
+void krGenerateFingerprint(umat2 * fp, const char * stream, uint32 len, const KRParams * params);
 
 /**
  * Increment fingerprint
@@ -47,4 +50,4 @@ void krGenerateFingerprint(umat2 * fp, const char * stream, uint32 len, const Ka
  * @param [in] len pattern length
  * @param [in] params KP parameters
  */
-void krIncrementFingerprint(umat2 * fp, const char * stream, uint32 len, const KarpRabinParams * params);
+void krIncrementFingerprint(umat2 * fp, const char * stream, uint32 len, const KRParams * params);
