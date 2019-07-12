@@ -16,12 +16,12 @@ void gsP1(GSParams * params)
 
 	if (params->p1 + params->q1 == params->k * params->p1)
 	{
-		params->q2 = 0;
 		params->p2 = params->q1;
+		params->q2 = 0;
 
 		gsP2(params);
 	}
-	else if (params->s + params->p1 + params->q1 != params->m)
+	else if (params->s + params->p1 + params->q1 < params->m)
 	{
 		params->p1 += params->q1 / params->k + 1;
 		params->q1 = 0;		
@@ -33,7 +33,7 @@ void gsP1(GSParams * params)
 void gsP2(GSParams * params)
 {
 	const char * pat = params->pattern + params->s;
-	while (pat[params->q2] == pat[params->q2 + params->p2]) ++params->q2;
+	while (pat[params->q2] == pat[params->q2 + params->p2] && params->p2 + params->q2 < params->k * params->p2) ++params->q2;
 
 	if (params->p2 + params->q2 == params->k * params->p2)
 	{
@@ -46,11 +46,11 @@ void gsP2(GSParams * params)
 
 			params->p1 += params->q1 / params->k + 1;
 			params->q1 = 0;			
-		} while (params->p1 >= params->p2);
+		} while (params->p1 < params->p2);
 
 		gsP1(params);
 	}
-	else if (params->s + params->p1 + params->q1 < params->m)
+	else if (params->s + params->p2 + params->q2 < params->m)
 	{
 		if (params->q2 == params->p1 + params->q1)
 		{
@@ -88,7 +88,7 @@ void gsInitParams(GSParams * params, const char * inPattern, const char * inText
 	params->n = strlen(inText);
 
 	// Default GS constant k
-	params->k = 4;
+	params->k = 2;
 
 	// Initial values
 	params->p1 = 1;
