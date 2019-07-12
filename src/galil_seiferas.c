@@ -78,14 +78,14 @@ void gsDecomposePattern(GSParams * params)
 	gsP1(params);
 }
 
-void gsInitParams(GSParams * params, const char * inPattern, const char * inText)
+void gsInitParams(GSParams * params, const char * inText, uint32 textLen, const char * inPattern, uint32 patternLen)
 {
 	// Get pattern and text lengths
-	params->pattern = inPattern;
 	params->text = inText;
+	params->pattern = inPattern;
 
-	params->m = strlen(inPattern);
 	params->n = strlen(inText);
+	params->m = strlen(inPattern);
 
 	// Default GS constant k
 	params->k = 2;

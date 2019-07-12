@@ -45,7 +45,7 @@ typedef struct GalilSeiferasParamsStruct
  * @param [in] inPattern pattern string
  * @param [in] inText text string
  */
-void gsInitParams(GSParams * params, const char * inPattern, const char * inText);
+void gsInitParams(GSParams * params, const char * inText, uint32 textLen, const char * inPattern, uint32 patternLen);
 
 /**
  * Run matching algorithm
